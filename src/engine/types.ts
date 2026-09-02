@@ -167,6 +167,8 @@ export interface Tuning {
     flashSupport: number;
     defHeal: number;
     hp: number;
+    /** Scales RoundSide.skillBonus into the duel delta. */
+    skill: number;
     exec: number;
     execCap: number;
     morale: number;
@@ -246,6 +248,11 @@ export interface RoundSide {
   plan: RoundPlan;
   units: OperatorInstance[];
   morale: number;
+  /**
+   * Flat advantage in raw stat points, used to make AI difficulty real.
+   * Applied to every duel this side takes, like morale but blunter.
+   */
+  skillBonus?: number;
 }
 
 export interface RoundContext {

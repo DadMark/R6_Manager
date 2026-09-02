@@ -269,6 +269,10 @@ function playRound(state: RunState, playerPlan: RoundPlan, deps: RunDeps): RunSt
       .filter((o): o is Operator => o !== undefined)
       .map(unitOf),
     morale: team.morale,
+    // This is what makes stage difficulty real. It used to live in the AI's
+    // pick scoring, where a constant added to every candidate cancelled out
+    // and changed nothing at all.
+    skillBonus: team.isAI ? profile.skillBias : 0,
   });
 
   const playerIsAtk = match.playerSide === 'ATK';

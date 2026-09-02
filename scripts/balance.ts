@@ -9,8 +9,13 @@
  * change in the numbers means a real change in the game — never noise.
  */
 import { defaultContent } from '../src/content';
+import { aiTeamNames, stages } from '../src/content/tournament';
+import { profileById, NEEDS } from '../src/engine/ai/difficulty';
+import { LINEUP_SIZE } from '../src/engine/draft';
 import { rngFor } from '../src/engine/rng';
+import { initialRunState, runReducer, type RunDeps } from '../src/engine/run';
 import { simulateRound } from '../src/engine/simulateRound';
+import type { RoundPlan, RunState, Tag } from '../src/engine/types';
 import type {
   AtkStrategy,
   DefStrategy,
@@ -149,6 +154,51 @@ function sample(n: number, prefix: string, setup: Setup = {}): Sample {
     plantRate: planted / n,
     n,
   };
+}
+
+// ── run-level helpers ───────────────────────────────────────────────────────
+
+const runDeps: RunDeps = { content, stages, aiTeamNames, profileById };
+
+/** A median-skill bot: fields the first five it drafted for the current side. */
+function botPlan(run: RunState): RoundPlan {
+  const side = run.currentMatch!.playerSide;
+  const lineup = run.player.roster
+    .map((id) => content.operators.find((o) => o.id === id)!)
+    .filter((o) => o.side === side)
+    .slice(0, LINEUP_SIZE)
+    .map((o) => o.id);
+
+  return {
+    lineup,
+    site: map.sites[0]!.id,
+    strategy: side === 'ATK' ? 'DEFAULT' : 'SPREAD',
+  };
+}
+
+/** Which offered operator best fills what the roster still lacks. */
+function bestByCoverage(run: RunState, offer: readonly string[]): string {
+  const side = run.draft!.side;
+  const owned = run.player.roster
+    .map((id) => content.operators.find((o) => o.id === id)!)
+    .filter((o) => o.side === side);
+  const covered = new Set(owned.flatMap((o) => o.roles));
+
+  let best = offer[0]!;
+  let bestScore = -Infinity;
+  for (const id of offer) {
+    const op = content.operators.find((o) => o.id === id)!;
+    const need = op.roles.reduce(
+      (sum, tag) => sum + (covered.has(tag) ? 0 : (NEEDS[side][tag as Tag] ?? 0)),
+      0,
+    );
+    const score = need * 3 + op.stats.aim / 10;
+    if (score > bestScore) {
+      bestScore = score;
+      best = id;
+    }
+  }
+  return best;
 }
 
 const pct = (v: number): string => `${(v * 100).toFixed(1)}%`;
@@ -295,6 +345,131 @@ check(
   overall.plantRate > 0.2 && overall.plantRate < 0.75,
   `${pct(overall.plantRate)} dos rounds (alvo 20–75%)`,
 );
+
+// ── Full-run difficulty curve ───────────────────────────────────────────────
+//
+// A bot of median skill (always takes the first offer, always fields the same
+// five) should clear the bracket sometimes but not usually. If the final eats
+// every run, reduce skillBias before touching disciplineWeight — a disciplined
+// but beatable boss is more satisfying than a superhuman one.
+
+const RUNS = Math.max(200, Math.round(N / 8));
+const eliminatedAt = new Array(stages.length).fill(0) as number[];
+let completed = 0;
+
+for (let i = 0; i < RUNS; i++) {
+  let run = runReducer(initialRunState(), { type: 'START_RUN', seed: `run-${i}` }, runDeps);
+
+  while (run.phase === 'DRAFT') {
+    run = runReducer(run, { type: 'DRAFT_PICK', opId: run.draft!.offer[0]! }, runDeps);
+  }
+
+  let guard = 0;
+  while (run.phase !== 'RUN_END' && guard++ < 300) {
+    if (run.phase === 'BRACKET') run = runReducer(run, { type: 'START_MATCH' }, runDeps);
+    else if (run.phase === 'ROUND_SETUP') {
+      run = runReducer(run, { type: 'SUBMIT_PLAN', plan: botPlan(run) }, runDeps);
+    } else if (run.phase === 'ROUND_PLAYBACK')
+      run = runReducer(run, { type: 'FINISH_PLAYBACK' }, runDeps);
+    else if (run.phase === 'ROUND_RESULT') run = runReducer(run, { type: 'NEXT_ROUND' }, runDeps);
+    else if (run.phase === 'MATCH_RESULT') run = runReducer(run, { type: 'NEXT_MATCH' }, runDeps);
+    else break;
+  }
+
+  const lostAt = run.bracket.stages.findIndex((s) => s.result === 'LOST');
+  if (lostAt === -1) completed++;
+  else eliminatedAt[lostAt] = (eliminatedAt[lostAt] ?? 0) + 1;
+}
+
+const completionRate = completed / RUNS;
+
+if (!ASSERT) {
+  console.log(`\n▸ Curva de dificuldade (${RUNS} runs de um bot mediano)\n`);
+  let alive = RUNS;
+  for (let i = 0; i < stages.length; i++) {
+    const out = eliminatedAt[i] ?? 0;
+    const share = alive > 0 ? out / alive : 0;
+    console.log(
+      `  ${stages[i]!.name.padEnd(28)} elimina ${pct(share).padStart(7)} dos que chegam`,
+    );
+    alive -= out;
+  }
+  console.log(`\n  Campanhas concluídas ${pct(completionRate)}`);
+}
+
+check(
+  'Campanha é vencível mas difícil',
+  completionRate > 0.05 && completionRate < 0.5,
+  `${pct(completionRate)} das runs concluídas (alvo 5–50%)`,
+);
+
+{
+  let worst = 0;
+  let worstStage = '';
+  let alive = RUNS;
+  for (let i = 0; i < stages.length; i++) {
+    const out = eliminatedAt[i] ?? 0;
+    const share = alive > 0 ? out / alive : 0;
+    if (share > worst) {
+      worst = share;
+      worstStage = stages[i]!.name;
+    }
+    alive -= out;
+  }
+  check(
+    'Sem paredão de dificuldade',
+    worst < 0.75,
+    `pior fase (${worstStage}) elimina ${pct(worst)} dos que chegam (precisa <75%)`,
+  );
+}
+
+// ── Auto-pick detection ─────────────────────────────────────────────────────
+//
+// An operator picked most of the times it is offered is a mandatory pick, and
+// mandatory picks make the draft a formality. Fix with draftWeight (offer
+// frequency) before touching stats.
+
+{
+  const offered = new Map<string, number>();
+  const takenBy = new Map<string, number>();
+
+  for (let i = 0; i < RUNS * 2; i++) {
+    let run = runReducer(initialRunState(), { type: 'START_RUN', seed: `draft-${i}` }, runDeps);
+    while (run.phase === 'DRAFT') {
+      const offer = run.draft!.offer;
+      for (const id of offer) offered.set(id, (offered.get(id) ?? 0) + 1);
+
+      // A greedy drafter takes whatever best covers what it still lacks.
+      const best = bestByCoverage(run, offer);
+      takenBy.set(best, (takenBy.get(best) ?? 0) + 1);
+      run = runReducer(run, { type: 'DRAFT_PICK', opId: best }, runDeps);
+    }
+  }
+
+  const rates = [...offered.entries()]
+    .filter(([, count]) => count >= 30)
+    .map(([id, count]) => ({ id, rate: (takenBy.get(id) ?? 0) / count }))
+    .sort((a, b) => b.rate - a.rate);
+
+  if (!ASSERT && rates.length > 0) {
+    console.log('\n▸ Taxa de escolha quando oferecido (top 5)\n');
+    for (const { id, rate } of rates.slice(0, 5)) {
+      const op = content.operators.find((o) => o.id === id);
+      console.log(`  ${(op?.name ?? id).padEnd(14)} ${pct(rate).padStart(7)}`);
+    }
+  }
+
+  const autoPicks = rates.filter((r) => r.rate > 0.85);
+  check(
+    'Nenhum operador é escolha obrigatória',
+    autoPicks.length === 0,
+    autoPicks.length === 0
+      ? 'nenhum acima de 85%'
+      : autoPicks
+          .map((r) => `${content.operators.find((o) => o.id === r.id)?.name}: ${pct(r.rate)}`)
+          .join(', '),
+  );
+}
 
 if (failures.length > 0) {
   console.error(`\n✗ ${failures.length} invariante(s) violado(s):\n`);

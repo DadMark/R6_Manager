@@ -11,12 +11,14 @@ import { DIMINISH, NEEDS, type AIProfile } from './difficulty';
  * AI drafts five good shooters and no hard breach.
  */
 
-const baseQuality = (op: Operator, profile: AIProfile): number =>
-  0.45 * op.stats.aim +
-  0.25 * op.stats.utility +
-  0.15 * op.stats.entry +
-  0.15 * op.stats.clutch +
-  profile.skillBias;
+/**
+ * NOTE: profile.skillBias deliberately does NOT appear here. Adding a constant
+ * to every candidate cancels out in the argmax, so it never changed a pick —
+ * it silently did nothing for the whole first difficulty pass. Skill is now a
+ * real combat modifier, carried on RoundSide.skillBonus.
+ */
+const baseQuality = (op: Operator): number =>
+  0.45 * op.stats.aim + 0.25 * op.stats.utility + 0.15 * op.stats.entry + 0.15 * op.stats.clutch;
 
 /**
  * Adjust the need weights from what the player did last round.
@@ -73,7 +75,7 @@ export function pickLineup(
     for (const op of pool) {
       if (chosen.some((c) => c.id === op.id)) continue;
 
-      let value = baseQuality(op, profile);
+      let value = baseQuality(op);
       for (const tag of op.roles) {
         const weight = needs[tag];
         if (!weight) continue;

@@ -22,6 +22,8 @@ export interface DuelModifiers {
   exec?: number;
   /** Morale difference, from the attacker's perspective. */
   morale?: number;
+  /** Team skill difference (attacker - defender), in raw stat points. */
+  skill?: number;
   planted?: boolean;
 }
 
@@ -59,9 +61,11 @@ export function resolveDuel(
   const strategy = mods.strategy ?? 0;
   const exec = clamp(M.exec * (mods.exec ?? 0), -M.execCap, M.execCap);
   const morale = clamp(M.morale * (mods.morale ?? 0), -M.moraleCap, M.moraleCap);
+  const skill = M.skill * (mods.skill ?? 0);
   const postPlant = mods.planted ? M.postPlant : 0;
 
-  const total = base + info + numbers + utility + health + strategy + exec + morale + postPlant;
+  const total =
+    base + info + numbers + utility + health + strategy + exec + morale + skill + postPlant;
   const probability = clamp(sigmoid(total / tuning.DUEL_K), tuning.P_FLOOR, tuning.P_CEIL);
   const roll = rng.next();
 
@@ -75,7 +79,7 @@ export function resolveDuel(
       health: round(health),
       strategy: round(strategy),
       exec: round(exec),
-      morale: round(morale),
+      morale: round(morale + skill),
       postPlant: round(postPlant),
       total: round(total),
       probability: round(probability, 4),

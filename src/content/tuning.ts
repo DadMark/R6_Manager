@@ -75,6 +75,9 @@ export const tuning: Tuning = {
     flashSupport: 1.8,
     defHeal: 2,
     hp: 2.5,
+    // AI difficulty, in raw stat points. 1.0 keeps skillBias directly
+    // readable: a +5 profile really is five points better per duel.
+    skill: 1.0,
     exec: 0.35,
     execCap: 5,
     morale: 0.03,

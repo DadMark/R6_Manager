@@ -2,11 +2,11 @@
 
 Jogo de navegador **manager/coach narrado** sobre Rainbow Six Siege.
 
-Você é o técnico: drafta um elenco, e a cada round escolhe 5 operadores, o bombsite e a estratégia — e lê o round acontecer, jogada a jogada. Inspirado no **7 a 0** (run roguelike com draft) e no **Brasfoot/Browserfoot** (partida narrada movida por atributos).
+Você é o técnico. Drafta um elenco, e a cada round escolhe 5 operadores, o bombsite e a estratégia — e lê o round acontecer, jogada a jogada. Inspirado no **7 a 0** (run roguelike com draft) e no **Brasfoot/Browserfoot** (partida narrada movida por atributos).
 
 ## O que faz isso ser Siege
 
-A matriz de contra-jogo de utility. A jogada-assinatura: uma hard breach (Thermite) contestada por anti-breach (Bandit) só resolve a favor do ataque se você também tiver draftado anti-gadget (Thatcher) — o que praticamente **dobra** a taxa de abertura do muro.
+A matriz de contra-jogo de utility. A jogada-assinatura: uma hard breach (Thermite) contestada por anti-breach (Bandit) só resolve a favor do ataque se você também tiver draftado anti-gadget (Thatcher) — o que vale **+7pp** de vitória, medido.
 
 E isso aparece na narração, não escondido num rolo de dados:
 
@@ -18,22 +18,28 @@ E isso aparece na narração, não escondido num rolo de dados:
 
 ```bash
 npm install
-npm run sim -- --seed teste-1     # narra um round no terminal
+npm run dev                             # jogar no navegador
+npm run sim -- --seed teste-1           # narrar um round no terminal
 npm run sim -- --seed teste-1 --debug   # com a aritmética dos duelos
-npm test
+npm test                                # 57 testes
+npm run balance                         # relatório completo de balanceamento
 ```
 
 ```
-────────────────────────────────────────────────────────────────────────
-  Fúria (ataque)  vs  Corvos (defesa)
-  Mapa: Chalé   Seed: teste-1
-────────────────────────────────────────────────────────────────────────
-   Corvos armou em outro canto e Fúria bateu no Porão. Rotação obrigatória!
-   IQ entra com tudo e Kapkan não teve tempo de reagir.
-   Hibana (SAT) ganha o duelo contra Frost.
- » Wipe completo. Fúria leva, com Buck brilhando.
-────────────────────────────────────────────────────────────────────────
+   Fúria pegou Bandeirantes trocando de pé: o Porão está aberto.
+   IQ manda o drone e mapeia o site inteiro. Informação limpa pro ataque.
+ » Vigil apaga a informação do Twitch. O ataque entra no escuro.
+ » Twitch limpa as armadilhas do caminho — Drone de Choque em ação.
+   Armadilha do Frost pega Blitz em cheio — morte instantânea.
+ » IQ planta tranquilo no Porão.
+ » Wipe completo. Fúria leva, com IQ brilhando.
 ```
+
+## Como uma campanha funciona
+
+Draft de 12 operadores (6 por lado) → fase de grupos → semifinal → final. Cada partida é melhor de 3, 5 ou 7 conforme a fase. **A mesma seed gera exatamente a mesma campanha**, então dá pra compartilhar e comparar.
+
+Seis por lado, não cinco: com exatamente cinco, a escalação de cada round seria obrigatória. O sexto é o que transforma "escale 5" numa decisão real contra o site e a estratégia que você acabou de escolher.
 
 ## Arquitetura em uma frase
 
@@ -43,16 +49,41 @@ Isso compra três coisas: runs determinísticas e compartilháveis por seed; tes
 
 Detalhes em [`docs/framework/`](docs/framework/).
 
+## Balanceamento
+
+Cada número vive em [`src/content/tuning.ts`](src/content/tuning.ts), com o baseline medido documentado no topo. `npm run balance:assert` falha o build se um invariante quebrar.
+
+| | |
+|---|---|
+| Vitória do ataque | 54.2% |
+| Plant acontece em | 57.6% dos rounds |
+| Anti-gadget na composição | +7.0pp |
+| Defesa errar o site | +13.4pp |
+| Campanhas concluídas (bot mediano) | 10.4% |
+
+As três estratégias de ataque ficam a menos de 2.5pp de média entre si, mantendo confrontos afiados: RUSH tira 61.5% de um roam agressivo e só 30.7% de um site ancorado.
+
 ## Status
 
-| Fatia | Estado |
+| Fatia | |
 |---|---|
-| S0 scaffold | ✅ |
-| S1 round simula e narra | ✅ |
-| S2 casca de UI | próxima |
-| S3 round completo (plant, breach, clutch) | |
-| S4–S9 agência, chaveamento, draft, balanceamento, deploy | |
+| S0 scaffold · S1 round narrado | ✅ |
+| S3 round completo (plant, breach, clutch) | ✅ |
+| S2 UI · S4 agência · S5 chaveamento · S6 draft · S7 persistência | ✅ |
+| S8 balanceamento · S9 polimento | ✅ |
+
+Fase 2 (não implementada): PvP assíncrono, rodando o mesmo motor no servidor.
 
 ## Nota legal
 
-Operadores de Rainbow Six Siege são propriedade da Ubisoft. Todo nome, unidade e gadget vive apenas em `src/content/` — o motor nunca referencia um id de operador, e um teste garante isso. Trocar por `operators.generic.ts` reskina o jogo inteiro por variável de ambiente. Este é um projeto de fã, sem afiliação com a Ubisoft.
+Operadores de Rainbow Six Siege são propriedade da Ubisoft. Todo nome, unidade e gadget vive apenas em `src/content/` — o motor nunca referencia um id de operador, e um teste garante isso.
+
+Uma build pública livre de IP é uma variável de ambiente:
+
+```bash
+VITE_CONTENT_PACK=generic npm run build
+```
+
+A troca acontece em **tempo de build**, por alias — então os nomes licenciados não entram no bundle. Um ternário em runtime empacotaria os dois conjuntos e não resolveria nada. Um teste garante que os dois pacotes são mecanicamente idênticos, para o balanceamento valer para ambos.
+
+Este é um projeto de fã, sem afiliação com a Ubisoft.

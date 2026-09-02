@@ -65,6 +65,7 @@ export function runExecute(state: RoundState): void {
       strategy: strategyValue,
       exec: state.atkExec - state.defSetup,
       morale: atk.morale - def.morale,
+      skill: (atk.skillBonus ?? 0) - (def.skillBonus ?? 0),
       planted: state.planted,
     };
 

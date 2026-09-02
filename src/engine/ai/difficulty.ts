@@ -51,12 +51,21 @@ export const DIMINISH = [1.0, 0.4, 0.1];
  * A 0.35-discipline AI forgets to bring anti-gadget; a 0.95 one never does.
  * That single number does more for perceived difficulty than raw stats.
  */
+/**
+ * skillBias starts NEGATIVE on purpose.
+ *
+ * The first pass had it starting at 0, and the resulting curve was flat: the
+ * group stage eliminated 47% of runs while the final eliminated 25%. A
+ * campaign has to open easy enough that a player learns the counter-matrix
+ * before it starts punishing them for not knowing it — and the escalation has
+ * to be felt, not just declared on the opponent card.
+ */
 export const AI_PROFILES: AIProfile[] = [
-  { id: 'grupo-1', name: 'Novatos', skillBias: 0, disciplineWeight: 0.35, aggression: 0.5, adaptivity: 0, noise: 1.0 },
-  { id: 'grupo-2', name: 'Regionais', skillBias: 2, disciplineWeight: 0.55, aggression: 0.5, adaptivity: 0.2, noise: 0.75 },
-  { id: 'grupo-3', name: 'Challengers', skillBias: 3.5, disciplineWeight: 0.65, aggression: 0.55, adaptivity: 0.35, noise: 0.6 },
-  { id: 'semifinal', name: 'Elite', skillBias: 5, disciplineWeight: 0.8, aggression: 0.6, adaptivity: 0.55, noise: 0.4 },
-  { id: 'final', name: 'Campeões', skillBias: 6.5, disciplineWeight: 0.95, aggression: 0.65, adaptivity: 0.8, noise: 0.2 },
+  { id: 'grupo-1', name: 'Novatos', skillBias: -5.5, disciplineWeight: 0.25, aggression: 0.5, adaptivity: 0, noise: 1.1 },
+  { id: 'grupo-2', name: 'Regionais', skillBias: -4, disciplineWeight: 0.45, aggression: 0.5, adaptivity: 0.15, noise: 0.85 },
+  { id: 'grupo-3', name: 'Challengers', skillBias: -2.5, disciplineWeight: 0.6, aggression: 0.55, adaptivity: 0.35, noise: 0.65 },
+  { id: 'semifinal', name: 'Elite', skillBias: -0.5, disciplineWeight: 0.8, aggression: 0.6, adaptivity: 0.55, noise: 0.4 },
+  { id: 'final', name: 'Campeões', skillBias: 1.5, disciplineWeight: 0.95, aggression: 0.7, adaptivity: 0.8, noise: 0.2 },
 ];
 
 export const profileById = (id: string): AIProfile =>
@@ -64,7 +73,7 @@ export const profileById = (id: string): AIProfile =>
 
 /** 1–5 stars, for the opponent card. Escalation has to be visible. */
 export const threatStars = (profile: AIProfile): number =>
-  Math.max(1, Math.min(5, Math.round(1 + profile.skillBias / 1.7)));
+  Math.max(1, Math.min(5, Math.round(1 + (profile.skillBias + 5.5) / 1.8)));
 
 /** A one-line pt-BR read on how this opponent plays. */
 export function threatDescriptor(profile: AIProfile): string {

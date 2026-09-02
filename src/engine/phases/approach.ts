@@ -107,6 +107,7 @@ export function runApproach(state: RoundState): void {
         numbers: state.alive('ATK').length - state.alive('DEF').length,
         strategy: tuning.STRATEGY_MATRIX[atk.plan.strategy]?.[def.plan.strategy] ?? 0,
         exec: state.atkExec - state.defSetup,
+        skill: (atk.skillBonus ?? 0) - (def.skillBonus ?? 0),
       },
       tuning,
       state.rng,

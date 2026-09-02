@@ -8,6 +8,7 @@ export default tseslint.config(
     // (framework layers L1/L2) and are not ours to lint or modify.
     ignores: [
       'dist',
+      'dist-generic',
       'node_modules',
       'coverage',
       'reports',
