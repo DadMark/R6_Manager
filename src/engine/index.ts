@@ -12,4 +12,34 @@ export { clamp, lerp, mean, round, sigmoid, sum } from './math';
 export { countTag, hasAnyTag, hasTag, rating } from './rating';
 export { resolveDuel, rollTrade, type DuelModifiers, type DuelOutcome } from './duel';
 export { simulateRound } from './simulateRound';
-export { narrate, type NarrationContext } from './narration/narrate';
+export {
+  simulateMatch,
+  sideForRound,
+  totalRounds,
+  type MatchPlanner,
+  type MatchTeam,
+  type SimulateMatchInput,
+} from './simulateMatch';
+export { narrate, UNRESOLVED, type NarrationContext } from './narration/narrate';
+export { resolveCounterRule, type CounterResolution } from './counters';
+export {
+  AI_PROFILES,
+  DIMINISH,
+  NEEDS,
+  profileById,
+  threatDescriptor,
+  threatStars,
+  type AIProfile,
+} from './ai/difficulty';
+export { adaptNeeds, coverageGaps, pickLineup } from './ai/pickLineup';
+export { pickPlan, type PlanInput } from './ai/pickPlan';
+export {
+  buildAIRoster,
+  buildOffer,
+  draftStep,
+  draftTotalSteps,
+  sideForStep,
+  DEFAULT_DRAFT,
+  type DraftConfig,
+} from './draft';
+export { initialRunState, runReducer, type RunAction, type RunDeps } from './run';

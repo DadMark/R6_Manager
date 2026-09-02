@@ -398,3 +398,76 @@ export interface SimulateRoundInput {
   content: GameContent;
   ctx: RoundContext;
 }
+
+// ── Run state ───────────────────────────────────────────────────────────────
+
+export type RunPhase =
+  | 'MENU'
+  | 'DRAFT'
+  | 'BRACKET'
+  | 'ROUND_SETUP'
+  | 'ROUND_PLAYBACK'
+  | 'ROUND_RESULT'
+  | 'MATCH_RESULT'
+  | 'RUN_END';
+
+export interface RunTeam {
+  id: string;
+  name: string;
+  tag: string;
+  /** Drafted roster. Every round's five must come from here. */
+  roster: string[];
+  morale: number;
+  isAI: boolean;
+  aiProfileId?: string;
+}
+
+export interface StageNode {
+  stageId: string;
+  name: string;
+  opponent: RunTeam;
+  roundsToWin: number;
+  result?: 'WON' | 'LOST';
+}
+
+export interface DraftOffer {
+  step: number;
+  total: number;
+  side: Side;
+  offer: string[];
+}
+
+export interface CurrentMatch {
+  matchId: string;
+  stageId: string;
+  opponent: RunTeam;
+  scorePlayer: number;
+  scoreOpponent: number;
+  roundIndex: number;
+  playerSide: Side;
+  roundsToWin: number;
+  lastResult?: RoundResult;
+  /** Powers the one-click "repeat lineup" and the AI's read on the player. */
+  lastPlayerPlan?: RoundPlan;
+  lastOpponentPlan?: RoundPlan;
+  playerRecentSites: SiteId[];
+  opponentRecentSites: SiteId[];
+}
+
+export interface RunSettings {
+  revealSpeed: 1 | 2 | 4;
+  autoAdvance: boolean;
+  debugMath: boolean;
+}
+
+export interface RunState {
+  schemaVersion: 1;
+  seed: string;
+  phase: RunPhase;
+  player: RunTeam;
+  draft?: DraftOffer;
+  bracket: { stages: StageNode[]; currentStageIndex: number };
+  currentMatch?: CurrentMatch;
+  history: MatchResult[];
+  settings: RunSettings;
+}
