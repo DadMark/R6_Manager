@@ -17,7 +17,18 @@ export interface DraftConfig {
   offerSize: number;
 }
 
-export const DEFAULT_DRAFT: DraftConfig = { perSide: 4, offerSize: 3 };
+/**
+ * Six per side, not five.
+ *
+ * Five would be the minimum to field a lineup at all — and would make the
+ * per-round "pick 5" a formality, since there would be exactly one legal
+ * choice. The sixth operator is what turns each round's lineup into a real
+ * decision against the site and strategy you just chose.
+ */
+export const DEFAULT_DRAFT: DraftConfig = { perSide: 6, offerSize: 3 };
+
+/** A lineup is five operators. The draft must always be able to field one. */
+export const LINEUP_SIZE = 5;
 
 export const draftTotalSteps = (config: DraftConfig = DEFAULT_DRAFT): number => config.perSide * 2;
 

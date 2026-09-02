@@ -312,6 +312,13 @@ export type RoundEvent =
       trumpIds: string[];
       outcome: RuleOutcome;
       probability: number;
+      /**
+       * Set when the play cost the acting operator their life (a breacher
+       * caught on the wall). Without it the event stream would be missing a
+       * death, and anything reconstructing alive counts from events — the UI's
+       * live dots — would drift.
+       */
+      casualtyId?: string;
     }
   | {
       kind: 'DUEL';

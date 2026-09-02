@@ -114,8 +114,12 @@ export class RoundState {
     }
   }
 
-  /** Apply a counter-rule outcome's effects to the accumulating round state. */
-  applyEffects(effects: RuleEffects, actorIds: readonly string[]): void {
+  /**
+   * Apply a counter-rule outcome's effects.
+   * Returns the operator killed by the play, if any, so the caller can put it
+   * on the event and keep the stream complete.
+   */
+  applyEffects(effects: RuleEffects, actorIds: readonly string[]): string | undefined {
     if (effects.atkExec) this.atkExec = clamp(this.atkExec + effects.atkExec, -12, 12);
     if (effects.defSetup) this.defSetup = clamp(this.defSetup + effects.defSetup, -12, 12);
     if (effects.clockCost) this.advanceClock(effects.clockCost);
@@ -129,8 +133,12 @@ export class RoundState {
       const unit = [...this.ctx.atk.units, ...this.ctx.def.units].find(
         (u) => u.opId === victimId && u.alive,
       );
-      if (unit) this.kill(unit);
+      if (unit) {
+        this.kill(unit);
+        return unit.opId;
+      }
     }
+    return undefined;
   }
 
   /**
@@ -162,8 +170,14 @@ export class RoundState {
       // no one brought a flash, there is no flash beat to narrate. Only rules
       // that declare a fallback (the reinforced wall, denied intel) are worth
       // telling the player about when they are absent.
-      const narratable = !resolution.absent || rule.fallbackNarrationKey !== undefined;
+      // The effects land either way: the attackers who skipped a hard breach
+      // eat the reinforced wall whether or not anyone narrates it.
+      const effects = resolution.absent
+        ? absentEffects(rule.id, this.side(actorSide), this.byId)
+        : rule.outcomes[resolution.outcome];
+      const casualtyId = this.applyEffects(effects, resolution.actorIds);
 
+      const narratable = !resolution.absent || rule.fallbackNarrationKey !== undefined;
       if (narratable) {
         this.emit({
           kind: 'COUNTER_PLAY',
@@ -177,15 +191,9 @@ export class RoundState {
           trumpIds: resolution.trumpIds,
           outcome: resolution.outcome,
           probability: Math.round(resolution.probability * 10000) / 10000,
+          ...(casualtyId ? { casualtyId } : {}),
         });
       }
-
-      // The effects land either way: the attackers who skipped a hard breach
-      // eat the reinforced wall whether or not anyone narrates it.
-      const effects = resolution.absent
-        ? absentEffects(rule.id, this.side(actorSide), this.byId)
-        : rule.outcomes[resolution.outcome];
-      this.applyEffects(effects, resolution.actorIds);
 
       results.push(resolution);
     }

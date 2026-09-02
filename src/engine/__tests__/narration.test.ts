@@ -36,6 +36,26 @@ describe('narration quality', () => {
     }
   });
 
+  /**
+   * pt-BR grammatical gender.
+   *
+   * Gadget names are mixed — "a Carga Exotérmica" but "o Electroclaw" — so no
+   * fixed article can precede {gadget}. Templates must reach it with a dash,
+   * a colon, or a possessive instead. This shipped as
+   * "com o Armadilha de Boas-Vindas" and only a screenshot caught it.
+   */
+  it('never puts a gendered article directly before a gadget name', () => {
+    const offenders: string[] = [];
+    for (const [key, variants] of Object.entries(defaultContent.templates)) {
+      for (const template of variants) {
+        if (/\b(?:[oa]|[dn][oa]|pel[oa])\s+\{gadget\}/i.test(template)) {
+          offenders.push(`${key}: "${template}"`);
+        }
+      }
+    }
+    expect(offenders, `gendered article before {gadget}:\n${offenders.join('\n')}`).toHaveLength(0);
+  });
+
   it('leaves no unfilled slots', () => {
     for (const line of sample(120)) {
       expect(line.text, `unfilled slot in: ${line.text}`).not.toMatch(/\{\w+\}/);

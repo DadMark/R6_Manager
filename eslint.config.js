@@ -37,6 +37,12 @@ export default tseslint.config(
     },
   },
 
+  {
+    // Standalone Node scripts (the browser smoke-play harness).
+    files: ['**/*.mjs'],
+    languageOptions: { ecmaVersion: 2022, sourceType: 'module', globals: globals.node },
+  },
+
   // ──────────────────────────────────────────────────────────────────────────
   // ENGINE PURITY BOUNDARY.
   // This is what makes the engine/UI separation real rather than aspirational.

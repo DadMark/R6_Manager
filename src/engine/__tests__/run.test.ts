@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { defaultContent } from '../../content';
 import { aiTeamNames, stages } from '../../content/tournament';
 import { profileById } from '../ai/difficulty';
+import { LINEUP_SIZE } from '../draft';
 import { initialRunState, runReducer, type RunAction, type RunDeps } from '../run';
 import type { RoundPlan, RunState, Side } from '../types';
 
@@ -34,6 +35,8 @@ function autoPlan(state: RunState): RoundPlan {
     .filter((op) => op.side === side)
     .slice(0, 5)
     .map((op) => op.id);
+
+  expect(lineup, 'roster cannot field a legal lineup').toHaveLength(LINEUP_SIZE);
 
   return {
     lineup,
@@ -96,10 +99,18 @@ describe('run state machine', () => {
     const roster = state.player.roster.map((id) => byId.get(id)!);
 
     expect(state.phase).toBe('BRACKET');
-    expect(roster).toHaveLength(8);
-    expect(roster.filter((o) => o.side === 'ATK')).toHaveLength(4);
-    expect(roster.filter((o) => o.side === 'DEF')).toHaveLength(4);
-    expect(new Set(state.player.roster).size).toBe(8); // no duplicates
+    expect(roster).toHaveLength(12);
+    expect(new Set(state.player.roster).size).toBe(12); // no duplicates
+
+    // The draft MUST be able to field a legal five on either side. Shipping
+    // four per side made the game unplayable and no unit test caught it —
+    // only driving the real UI did.
+    for (const side of ['ATK', 'DEF'] as const) {
+      expect(
+        roster.filter((o) => o.side === side).length,
+        `only ${roster.filter((o) => o.side === side).length} ${side} operators — cannot field five`,
+      ).toBeGreaterThanOrEqual(LINEUP_SIZE);
+    }
     expect(sidesSeen).toContain('ATK');
     expect(sidesSeen).toContain('DEF');
   });
@@ -111,7 +122,7 @@ describe('run state machine', () => {
     expect(nodes).toHaveLength(stages.length);
     expect(new Set(nodes.map((n) => n.opponent.name)).size).toBe(nodes.length);
     for (const node of nodes) {
-      expect(node.opponent.roster.length).toBe(8);
+      expect(node.opponent.roster.length).toBe(12);
       expect(node.opponent.isAI).toBe(true);
     }
   });

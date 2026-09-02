@@ -36,7 +36,12 @@ export const templateBank: TemplateBank = {
     'Sinal cortado — {op} não consegue informação nenhuma.',
     '{op} perde o drone antes de ver o site. Entrada às cegas.',
   ],
-  'setup.note': ['{op} ajusta o {gadget} e fecha o ângulo.', '{op} monta o {gadget} no acesso principal.', '{op} reforça a posição com o {gadget}.'],
+  'setup.note': [
+    '{op} fecha o ângulo — {gadget} no lugar.',
+    '{op} prepara o acesso principal: {gadget}.',
+    '{op} reforça a posição e monta o setup.',
+    '{op} ajusta o posicionamento antes do relógio correr.',
+  ],
 
   // ── Counter-play: PREP ────────────────────────────────────────────────────
   'prep.intel_vs_denial.success': [
@@ -64,7 +69,7 @@ export const templateBank: TemplateBank = {
 
   // ── Counter-play: APPROACH ────────────────────────────────────────────────
   'approach.anti_gadget_vs_trap.success': [
-    '{op} limpa as armadilhas do caminho com o {gadget}. Estrada livre.',
+    '{op} limpa as armadilhas do caminho — {gadget} em ação. Estrada livre.',
     '{op} queima os gadgets do {op2} antes de qualquer passo.',
     'Varredura perfeita do {op} — nada de armadilha no acesso.',
   ],
@@ -122,7 +127,7 @@ export const templateBank: TemplateBank = {
   'postplant.heal_revive.success': [
     '{op} levanta o companheiro caído — a defesa volta pro retake com um a mais.',
     'Reanimação de {op}! A defesa ganha sobrevida.',
-    '{op} usa o {gadget} e recoloca a defesa de pé.',
+    '{op} recoloca a defesa de pé — {gadget} no lugar certo.',
   ],
   'postplant.heal_revive.partial': [
     '{op} estabiliza o companheiro, mas custou tempo demais.',
@@ -137,13 +142,13 @@ export const templateBank: TemplateBank = {
 
   // ── Approach ──────────────────────────────────────────────────────────────
   'trap.lethal': [
-    '{op2} não viu o {gadget} do {op} e foi embora na hora. Um a menos.',
+    '{op2} não viu a armadilha do {op} e foi embora na hora. Um a menos.',
     'Armadilha do {op} pega {op2} em cheio — morte instantânea.',
-    '{gadget} do {op} cobra o pedágio: {op2} nem chegou a atirar.',
+    'A armadilha do {op} cobra o pedágio: {op2} nem chegou a atirar.',
   ],
   'trap.chip': [
-    '{op2} pisa no {gadget} do {op}, mas sobrevive. Vida baixa.',
-    'O {gadget} do {op} machuca {op2} sem matar — {op2} segue, mas pendurado.',
+    '{op2} pisa na armadilha do {op}, mas sobrevive. Vida baixa.',
+    'A armadilha do {op} machuca {op2} sem matar — {op2} segue, mas pendurado.',
     '{op2} escapa da armadilha do {op} por pouco. Sangrando.',
   ],
   'roam.duel': ['{op} intercepta {op2} fora do site e ganha o duelo.', 'Roam de {op} funciona: {op2} cai antes de chegar perto.', '{op} pega {op2} de surpresa no corredor.'],
@@ -212,7 +217,11 @@ export const templateBank: TemplateBank = {
   ],
   'defuse.success': ['{op} desarma no último segundo!', '{op} chega no defusor e desarma. Round da defesa!', 'Retake perfeito: {op} desarma.'],
   'defuse.fail': ['{op} tenta desarmar e não dá tempo.', '{op} morre em cima do defusor.', 'O retake de {op} para a centímetros do defusor.'],
-  revive: ['{op} levanta {op2} e recoloca a defesa de pé.', '{op} usa o {gadget} e traz {op2} de volta.', 'Reanimação de {op}: {op2} volta ao round.'],
+  revive: [
+    '{op} levanta {op2} e recoloca a defesa de pé.',
+    '{op} traz {op2} de volta — {gadget} bem usado.',
+    'Reanimação de {op}: {op2} volta ao round.',
+  ],
 
   // ── Clutch ────────────────────────────────────────────────────────────────
   'clutch.start': [

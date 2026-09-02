@@ -40,6 +40,7 @@ export {
   draftTotalSteps,
   sideForStep,
   DEFAULT_DRAFT,
+  LINEUP_SIZE,
   type DraftConfig,
 } from './draft';
 export { initialRunState, runReducer, type RunAction, type RunDeps } from './run';
