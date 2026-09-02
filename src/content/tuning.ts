@@ -7,29 +7,41 @@ import type { Tuning } from '@engine/types';
  * values and contains none of its own, so re-tuning the game never requires
  * touching logic. Run `npm run balance:assert` after any change here.
  *
- * ── MEASURED S1 BASELINE (EXECUTE phase only, 3–4k rounds per cell) ─────────
+ * ── MEASURED S3 BASELINE (all phases, 3k rounds per cell) ──────────────────
  *
  *   ATK win %      vs ROAM   vs ANCHOR   vs SPREAD      avg
- *   RUSH             58.8      33.7        49.7        47.4
- *   DEFAULT          28.6      39.1        36.0        34.6
- *   SPLIT            38.0      31.6        24.8        31.5
+ *   RUSH             61.5      30.7        52.0        48.1
+ *   DEFAULT          46.2      54.6        50.5        50.4
+ *   SPLIT            56.1      47.1        40.9        48.0
  *
- *   Outcomes: ATK/ELIMINATION 36.5% · DEF/TIME 33.7% · DEF/ELIMINATION 29.8%
- *   Site mismatch is worth +13.7pp to the attack (37.1% → 50.8%).
+ *   Attack wins 54.2% overall · plant lands in 57.6% of rounds
+ *   Outcomes: ATK/ELIM 43.9% · DEF/ELIM 24.2% · DEF/TIME 11.6%
+ *             ATK/DETONATION 10.6% · DEF/DEFUSED 9.6%
+ *   Anti-gadget in the comp: +7.0pp   ·   Defence reading the site wrong: +13.4pp
  *
- * Two known deviations, both traced to the same missing piece rather than to
- * these numbers — do NOT tune them away here:
+ * All three plans sit within 2.5pp of each other on average while keeping
+ * sharp individual matchups (RUSH takes 61.5% off roamers and 30.7% off an
+ * anchored site). That spread is the goal: no dominant plan, but plans that
+ * clearly beat and lose to each other.
  *
- *   1. Attackers sit near 38% overall, and a third of rounds expire on the
- *      clock with both sides alive.
- *   2. RUSH out-performs the other two attack plans by 13–16pp on average
- *      (rock-paper-scissors still holds — RUSH loses to ANCHOR_HOLD).
+ * ── WHAT S3 CHANGED, AND WHY ───────────────────────────────────────────────
  *
- * Cause: slice S1 has no PLANT. A wipe is currently the attack's ONLY win
- * condition, which both suppresses their win rate and rewards the plan that
- * forces fights fastest. S3 adds PLANT/POST_PLANT — the attack's real win
- * condition — and these figures get re-measured then. Re-tuning around an
- * absent phase would only have to be undone.
+ * S1 measured attackers at 38% with a third of rounds expiring on the clock,
+ * because a wipe was their only win condition. Adding PLANT first swung it to
+ * 76% — planting had become synonymous with winning. Three fixes brought it
+ * back to even, and each is load-bearing:
+ *
+ *   1. PLANT.base cut 0.20 → 0.04. The plant is rolled before every
+ *      engagement, so a generous base compounds into near-certainty.
+ *   2. Wiping the attackers post-plant now wins the round for the defence
+ *      (DEFUSED). Previously a plant beat everything short of an explicit
+ *      defuse roll, which fired 0.4% of the time.
+ *   3. Attack-side counter-rule grants roughly halved. Five of the six rules
+ *      are attack-side, so their bonuses stack in one direction.
+ *
+ * DEFAULT also needed its clock multiplier raised to 1.45: its cost is
+ * supposed to be time, but rounds ended by elimination long before 180s, so
+ * slow play was collecting its benefits for free.
  */
 export const tuning: Tuning = {
   // A +9 raw-point advantage is roughly a 73% duel. Larger DUEL_K = flatter
@@ -54,9 +66,14 @@ export const tuning: Tuning = {
     numbers: 2.2,
     numbersCap: 6,
     infoCap: 6,
-    wallOpen: 4,
-    flashSupport: 3,
-    defHeal: 1.5,
+    // Five of the six counter rules are attack-side, so their bonuses stack in
+    // one direction. The defence's counterplay is denial — it shows up as the
+    // attacker's rule FAILING, not as a defensive bonus. That asymmetry is
+    // right for Siege, but it means these two numbers carry the whole round's
+    // balance and must stay modest.
+    wallOpen: 2.5,
+    flashSupport: 1.8,
+    defHeal: 2,
     hp: 2.5,
     exec: 0.35,
     execCap: 5,
@@ -91,5 +108,66 @@ export const tuning: Tuning = {
     maxEngagements: 6,
     clockMax: 180,
     engagementSeconds: [8, 18],
+  },
+
+  // Reading the defence wrong must be a real cost, or the site pick is theatre.
+  SITE: { defSetupOnMatch: 4, atkExecOnMiss: 3, defSetupOnMiss: -2 },
+
+  // RUSH trades information for tempo; DEFAULT buys it back with clock.
+  INFO: {
+    utilityDivisor: 20,
+    cap: 6,
+    byStrategy: { RUSH: -2, DEFAULT: 1, SPLIT: 0 },
+  },
+
+  // Traps are the price RUSH pays for its tempo.
+  TRAP: {
+    base: 0.3,
+    perIntel: -0.06,
+    antiGadget: -0.1,
+    utilityScale: 0.05,
+    utilityPivot: 75,
+    infoScale: -0.03,
+    min: 0.05,
+    max: 0.65,
+    byStrategy: { RUSH: 0.15, DEFAULT: -0.08, SPLIT: 0 },
+  },
+
+  ROAM: {
+    engageBase: 0.55,
+    maxDuels: 2,
+    byAtkStrategy: { RUSH: 0.1, DEFAULT: -0.15, SPLIT: 0 },
+    byDefStrategy: { AGGRESSIVE_ROAM: 0.2, ANCHOR_HOLD: -0.15, SPREAD: 0 },
+  },
+
+  // The attack's real win condition. Without this the round is defender-sided
+  // by construction — see the S1 baseline note above.
+  PLANT: {
+    // Deliberately low at even strength. The plant is checked before every
+    // engagement, so a generous base compounds into a near-certainty over a
+    // round — which made planting synonymous with winning. Attackers should
+    // have to earn the space first, mostly by getting a man up.
+    base: 0.04,
+    perNumbers: 0.14,
+    wallOpen: 0.15,
+    siteMismatch: 0.1,
+    lateThreshold: 140,
+    latePenalty: -0.15,
+    min: 0.05,
+    max: 0.9,
+    byStrategy: { RUSH: 0.1, DEFAULT: 0, SPLIT: 0.05 },
+    defuseWindow: 45,
+  },
+
+  CLUTCH: { statScale: 0.25, statPivot: 75, perExtraFoe: -2.0 },
+
+  // Slow play buys information but burns the clock — that trade is what stops
+  // DEFAULT from dominating once the plant exists.
+  CLOCK: {
+    prepEnd: 25,
+    approachEnd: 60,
+    breachEnd: 80,
+    executeStart: 70,
+    byStrategy: { RUSH: 0.75, DEFAULT: 1.45, SPLIT: 1.0 },
   },
 };

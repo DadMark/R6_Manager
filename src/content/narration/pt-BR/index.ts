@@ -38,6 +38,103 @@ export const templateBank: TemplateBank = {
   ],
   'setup.note': ['{op} ajusta o {gadget} e fecha o ângulo.', '{op} monta o {gadget} no acesso principal.', '{op} reforça a posição com o {gadget}.'],
 
+  // ── Counter-play: PREP ────────────────────────────────────────────────────
+  'prep.intel_vs_denial.success': [
+    '{op} vence a guerra de informação — o site está desenhado pro ataque.',
+    'A leitura de {op} passa por cima da negação. Informação limpa.',
+    '{op} tira raio-x do site apesar do {op2}.',
+  ],
+  'prep.intel_vs_denial.partial': [
+    '{op} arranca informação parcial. Dá pra trabalhar, não dá pra confiar.',
+    'Meia leitura pro {op} — sabe onde tem gente, não sabe quem.',
+    '{op} consegue pouco: o {op2} cortou metade do sinal.',
+  ],
+  'prep.intel_vs_denial.fail': [
+    '{op2} apaga a informação do {op}. O ataque entra no escuro.',
+    'Negação total: {op2} deixa o {op} sem nada.',
+    'A informação morre no perturbador do {op2}.',
+    '{op} não consegue leitura nenhuma. Entrada no escuro.',
+    'A tentativa de {op} não rende informação útil.',
+  ],
+  'prep.no_intel': [
+    '{atkTeam} não trouxe informação nenhuma. Vai ser no feeling.',
+    'Nenhum drone útil no ataque — entrada às cegas.',
+    'Sem intel na composição, {atkTeam} vai descobrir o site na porrada.',
+  ],
+
+  // ── Counter-play: APPROACH ────────────────────────────────────────────────
+  'approach.anti_gadget_vs_trap.success': [
+    '{op} limpa as armadilhas do caminho com o {gadget}. Estrada livre.',
+    '{op} queima os gadgets do {op2} antes de qualquer passo.',
+    'Varredura perfeita do {op} — nada de armadilha no acesso.',
+  ],
+  'approach.anti_gadget_vs_trap.partial': [
+    '{op} tira parte das armadilhas. Ainda tem coisa viva no caminho.',
+    'Limpeza incompleta do {op}.',
+    '{op} acha uma, deixa outra passar.',
+  ],
+  'approach.anti_gadget_vs_trap.fail': [
+    '{op} não acha nada. As armadilhas do {op2} seguem armadas.',
+    '{op2} escondeu bem: o {op} passou reto.',
+    'A varredura do {op} falha — vai entrar por cima dos gadgets.',
+    '{op} não limpa nada no caminho.',
+  ],
+  'approach.no_anti_gadget': [
+    'Sem anti-gadget, {atkTeam} vai ter que engolir as armadilhas.',
+    '{atkTeam} não trouxe quem limpasse utility. Vai doer.',
+    'Nenhuma resposta pros gadgets da defesa.',
+  ],
+
+  // ── Counter-play: EXECUTE ─────────────────────────────────────────────────
+  'execute.flash_vs_anchor.success': [
+    '{op} cega o site inteiro — {op2} não vê nada quando o ataque entra.',
+    'Flash perfeita do {op}. A âncora {op2} fica sem ângulo.',
+    '{op} joga a luz e o ataque entra por cima do {op2}.',
+  ],
+  'execute.flash_vs_anchor.partial': [
+    'A flash do {op} pega de raspão. {op2} se vira.',
+    '{op} cega metade do site.',
+    'Luz mal jogada do {op} — ajudou pouco.',
+  ],
+  'execute.flash_vs_anchor.fail': [
+    '{op2} lê a flash do {op} e vira de costas. Sem efeito.',
+    'A luz do {op} morre sem pegar ninguém.',
+    '{op} desperdiça a flash.',
+    'A flash do {op} sai torta e não cega ninguém.',
+  ],
+  'execute.shield_entry.success': [
+    '{op} entra de escudo e segura a linha. O site abre atrás dele.',
+    'O escudo do {op} aguenta tudo — espaço conquistado.',
+    '{op} caminha pro site atrás do escudo, sem pressa.',
+  ],
+  'execute.shield_entry.partial': [
+    '{op} avança de escudo, mas trava no meio do caminho.',
+    'O escudo do {op} segura só até a porta.',
+    '{op} ganha pouco espaço.',
+  ],
+  'execute.shield_entry.fail': [
+    '{op} fica preso atrás do escudo e não sai do lugar.',
+    'A entrada de escudo do {op} morre no acesso.',
+    '{op2} contorna o escudo do {op}.',
+  ],
+
+  // ── Counter-play: POST-PLANT ──────────────────────────────────────────────
+  'postplant.heal_revive.success': [
+    '{op} levanta o companheiro caído — a defesa volta pro retake com um a mais.',
+    'Reanimação de {op}! A defesa ganha sobrevida.',
+    '{op} usa o {gadget} e recoloca a defesa de pé.',
+  ],
+  'postplant.heal_revive.partial': [
+    '{op} estabiliza o companheiro, mas custou tempo demais.',
+    'Reanimação parcial de {op}.',
+    '{op} salva alguém, tarde.',
+  ],
+  'postplant.heal_revive.fail': [
+    '{op} tenta reanimar e é pego no meio do processo.',
+    'A reanimação do {op} não sai.',
+    '{op} perde tempo tentando levantar alguém.',
+  ],
+
   // ── Approach ──────────────────────────────────────────────────────────────
   'trap.lethal': [
     '{op2} não viu o {gadget} do {op} e foi embora na hora. Um a menos.',
@@ -52,20 +149,31 @@ export const templateBank: TemplateBank = {
   'roam.duel': ['{op} intercepta {op2} fora do site e ganha o duelo.', 'Roam de {op} funciona: {op2} cai antes de chegar perto.', '{op} pega {op2} de surpresa no corredor.'],
 
   // ── Breach — the signature beat ───────────────────────────────────────────
+  // A contest can resolve with either side empty, so each outcome needs
+  // variants that name only {op}. Otherwise an uncontested breach — the most
+  // common case — would render nothing, and this is the signature beat.
   'breach.hard_vs_anti.success': [
     '{op3} joga a EMP na parede — as baterias do {op2} fritam. A carga do {op} queima o reforço!',
     '{op3} limpa a negação do {op2} e o {op} abre o muro. Site escancarado.',
     'Combinação perfeita: {op3} anula o {op2}, {op} coloca a carga. Muro aberto!',
+    '{op} passa por cima da negação do {op2} e abre o muro.',
+    '{op} coloca a carga e o reforço vai ao chão. Site aberto!',
+    'Muro aberto por {op} — o ataque ganhou o ângulo que queria.',
+    'A carga do {op} queima limpo. Sem oposição, sem drama.',
   ],
   'breach.hard_vs_anti.partial': [
     '{op} consegue abrir só um pedaço do muro. Ângulo estreito, mas é alguma coisa.',
     'A carga do {op} pega parcial — dá pra ver, mas não dá pra entrar.',
     'Meia abertura pro {op}. Custou tempo e não resolveu.',
+    '{op} rasga metade do reforço. Serve de olho mágico, não de porta.',
   ],
   'breach.hard_vs_anti.fail': [
     '{op2} trickou a carga. {op} caiu na parede e o muro segue de pé.',
     'Negação do {op2} funciona: a carga do {op} nem chega a queimar.',
     'O muro aguenta. {op2} defendeu o reforço e o ataque perdeu o relógio.',
+    'A carga do {op} falha. O muro continua inteiro e o relógio correndo.',
+    '{op} perde a carga na parede sem abrir nada.',
+    'Não abriu. {op} gastou tempo e utility pra nada.',
   ],
   'breach.no_hard_breach': [
     '{atkTeam} não trouxe abertura pesada — o muro reforçado vai segurar o round todo.',

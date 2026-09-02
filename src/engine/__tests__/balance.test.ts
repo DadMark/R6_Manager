@@ -75,8 +75,60 @@ describe('balance invariants', () => {
       atkSite: 'porao',
       defSite: 'porao',
     });
-    expect(rate(t)).toBeGreaterThan(0.35);
-    expect(rate(t)).toBeLessThan(0.65);
+    expect(rate(t)).toBeGreaterThan(0.42);
+    expect(rate(t)).toBeLessThan(0.62);
+  });
+
+  /**
+   * The signature interaction, and the reason the draft matters: bringing
+   * anti-gadget against a reinforced site has to visibly change the round.
+   * If this stops holding, the utility counter-matrix has become decoration.
+   */
+  it('bringing anti-gadget against anti-breach visibly changes the round', () => {
+    const ops = defaultContent.operators;
+    const hardBreach = ops.find((o) => o.roles.includes('hard-breach'))!;
+    const antiGadget = ops.find((o) => o.side === 'ATK' && o.roles.includes('anti-gadget'))!;
+    const filler = ops.filter(
+      (o) => o.side === 'ATK' && !o.roles.includes('hard-breach') && !o.roles.includes('anti-gadget'),
+    );
+    const antiBreach = ops.find((o) => o.roles.includes('anti-breach'))!;
+    const defFiller = ops.filter((o) => o.side === 'DEF' && !o.roles.includes('anti-breach'));
+
+    const defence = [antiBreach, ...defFiller.slice(0, 4)];
+    const setup = { defOps: defence, atkSite: 'porao', defSite: 'porao' };
+
+    const without = rate(
+      simulateMany(N, 'no-trump', { ...setup, atkOps: [hardBreach, ...filler.slice(0, 4)] }),
+    );
+    const with_ = rate(
+      simulateMany(N, 'with-trump', {
+        ...setup,
+        atkOps: [hardBreach, antiGadget, ...filler.slice(0, 3)],
+      }),
+    );
+
+    const edge = with_ - without;
+    expect(
+      edge,
+      `anti-gadget was worth only ${(edge * 100).toFixed(1)}pp — the counter-matrix is decoration`,
+    ).toBeGreaterThan(0.03);
+    // And it must not be an auto-win, or it becomes a mandatory pick.
+    expect(with_).toBeLessThan(0.8);
+  });
+
+  it('the plant happens often enough to matter, without being automatic', () => {
+    let planted = 0;
+    for (let i = 0; i < N; i++) {
+      const seed = `plant-${i}`;
+      const result = simulateRound(
+        { content: defaultContent, ctx: buildRoundContext(seed) },
+        rngFor(seed, 0, 1, 'sim'),
+      );
+      if (result.planted) planted++;
+    }
+    const plantRate = planted / N;
+    expect(plantRate).toBeGreaterThan(0.2);
+    expect(plantRate).toBeLessThan(0.8);
   });
 
   it('no attack strategy beats every defensive answer', () => {

@@ -13,6 +13,10 @@ import { defaultContent } from '../../content';
 
 const ENGINE_DIR = join(process.cwd(), 'src/engine');
 
+/** Remove block and line comments so the checks below inspect code, not prose. */
+const stripComments = (source: string): string =>
+  source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+
 function engineFiles(dir = ENGINE_DIR): string[] {
   return readdirSync(dir).flatMap((entry) => {
     const full = join(dir, entry);
@@ -31,7 +35,9 @@ describe('engine purity', () => {
   });
 
   it.each(files)('%s stays framework-free, time-free and randomness-free', (file) => {
-    const source = readFileSync(file, 'utf8');
+    // Strip comments first: prose is allowed to mention a defuse "window" or
+    // a Date without the engine actually reaching for either.
+    const source = stripComments(readFileSync(file, 'utf8'));
     expect(source).not.toMatch(/from ['"]react/);
     expect(source).not.toMatch(/\bMath\.random\b/);
     expect(source).not.toMatch(/\bDate\.now\b/);

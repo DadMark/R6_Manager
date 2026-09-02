@@ -176,6 +176,47 @@ export interface Tuning {
   STRATEGY_MATRIX: Record<string, Record<string, number>>;
   TRADE: { base: number; perNumbers: number; cap: number; byStrategy: Record<string, number> };
   ROUND: { maxEngagements: number; clockMax: number; engagementSeconds: [number, number] };
+  /** Site mind-game: what reading the defence right/wrong is worth. */
+  SITE: { defSetupOnMatch: number; atkExecOnMiss: number; defSetupOnMiss: number };
+  /** PREP intel duel. */
+  INFO: { utilityDivisor: number; cap: number; byStrategy: Record<string, number> };
+  /** APPROACH traps. */
+  TRAP: {
+    base: number;
+    perIntel: number;
+    antiGadget: number;
+    utilityScale: number;
+    utilityPivot: number;
+    infoScale: number;
+    min: number;
+    max: number;
+    byStrategy: Record<string, number>;
+  };
+  /** APPROACH roamer interceptions. */
+  ROAM: { engageBase: number; maxDuels: number; byAtkStrategy: Record<string, number>; byDefStrategy: Record<string, number> };
+  /** Plant attempt and the post-plant clock. */
+  PLANT: {
+    base: number;
+    perNumbers: number;
+    wallOpen: number;
+    siteMismatch: number;
+    lateThreshold: number;
+    latePenalty: number;
+    min: number;
+    max: number;
+    byStrategy: Record<string, number>;
+    defuseWindow: number;
+  };
+  /** 1vX resolution. */
+  CLUTCH: { statScale: number; statPivot: number; perExtraFoe: number };
+  /** Phase clock budgets, in pseudo-seconds. */
+  CLOCK: {
+    prepEnd: number;
+    approachEnd: number;
+    breachEnd: number;
+    executeStart: number;
+    byStrategy: Record<string, number>;
+  };
 }
 
 // ── Round state ─────────────────────────────────────────────────────────────

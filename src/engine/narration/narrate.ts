@@ -58,26 +58,49 @@ const TONE: Record<EventKind, NarrationTone> = {
   ROUND_END: 'hype',
 };
 
+/** Every `{slot}` a template needs in order to render completely. */
+const slotsRequired = (template: string): string[] =>
+  [...template.matchAll(/\{(\w+)\}/g)].map((m) => m[1]!);
+
 /**
  * Choose a template variant, avoiding an immediate repeat of the last variant
  * used for that same key within the round. Repetition is the fastest way for
  * narration to stop feeling alive.
+ *
+ * Variants whose slots cannot all be filled are excluded up front. A rule can
+ * legitimately resolve with one side empty — a breach can fail with nobody
+ * contesting it — and a line naming an operator who was never there reads as
+ * a bug. Better to pick a variant that fits, or say nothing.
  */
 function pickVariant(
   key: string,
   bank: TemplateBank,
+  slots: Record<string, string>,
   used: Map<string, number>,
   rng: Rng,
 ): { template: string; templateId: string } | null {
   const variants = bank[key];
   if (!variants || variants.length === 0) return null;
 
-  let index = Math.floor(rng.next() * variants.length);
-  if (variants.length > 1 && used.get(key) === index) {
-    index = (index + 1 + Math.floor(rng.next() * (variants.length - 1))) % variants.length;
+  const usable = variants
+    .map((template, index) => ({ template, index }))
+    .filter(({ template }) =>
+      slotsRequired(template).every((slot) => {
+        const value = slots[slot];
+        return value !== undefined && value !== UNRESOLVED;
+      }),
+    );
+
+  if (usable.length === 0) return null;
+
+  let pick = usable[Math.floor(rng.next() * usable.length)]!;
+  if (usable.length > 1 && used.get(key) === pick.index) {
+    const others = usable.filter((v) => v.index !== pick.index);
+    pick = others[Math.floor(rng.next() * others.length)]!;
   }
-  used.set(key, index);
-  return { template: variants[index]!, templateId: `${key}#${index}` };
+
+  used.set(key, pick.index);
+  return { template: pick.template, templateId: `${key}#${pick.index}` };
 }
 
 const fill = (template: string, slots: Record<string, string>): string =>
@@ -202,12 +225,15 @@ export function narrate(
 
   for (const event of events) {
     const key = narrationKeyFor(event);
-    const chosen = pickVariant(key, bank, used, rng);
-    if (!chosen) continue; // An unmapped key is silent rather than fatal.
+    const slots = slotsFor(event, ctx);
+    const chosen = pickVariant(key, bank, slots, used, rng);
+    // An unmapped key, or one with no fillable variant, is silent rather than
+    // fatal — a missing line beats a broken one.
+    if (!chosen) continue;
 
     lines.push({
       eventId: event.id,
-      text: fill(chosen.template, slotsFor(event, ctx)),
+      text: fill(chosen.template, slots),
       tone: TONE[event.kind],
       beat: BEAT[event.kind],
       templateId: chosen.templateId,

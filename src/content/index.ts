@@ -1,6 +1,7 @@
 import type { GameContent } from '@engine/types';
 import { attackOperators } from './operators.attack';
 import { defenseOperators } from './operators.defense';
+import { counterRules } from './counterRules';
 import { atkStrategies, defStrategies, maps } from './maps';
 import { templateBank } from './narration/pt-BR';
 import { tuning } from './tuning';
@@ -14,12 +15,11 @@ import { tuning } from './tuning';
  */
 export const defaultContent: GameContent = {
   operators: [...attackOperators, ...defenseOperators],
-  // Counter rules arrive in slice S3, together with the BREACH phase.
-  counterRules: [],
+  counterRules,
   maps,
   strategies: { atk: atkStrategies, def: defStrategies },
   tuning,
   templates: templateBank,
 };
 
-export { attackOperators, defenseOperators, maps, templateBank, tuning };
+export { attackOperators, counterRules, defenseOperators, maps, templateBank, tuning };

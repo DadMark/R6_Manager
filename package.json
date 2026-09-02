@@ -11,7 +11,9 @@
     "test:watch": "vitest",
     "lint": "eslint .",
     "typecheck": "tsc -b --noEmit",
-    "sim": "tsx scripts/sim.ts"
+    "sim": "tsx scripts/sim.ts",
+    "balance": "tsx scripts/balance.ts",
+    "balance:assert": "tsx scripts/balance.ts --assert"
   },
   "dependencies": {
     "react": "^19.2.0",
