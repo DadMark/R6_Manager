@@ -78,11 +78,13 @@ Fase 2 (não implementada): PvP assíncrono, rodando o mesmo motor no servidor.
 
 O `dist/` é estático puro — sem backend, sem variável de ambiente obrigatória. Publica em qualquer host.
 
-**Netlify:** o site `r6-manager` já existe e o `netlify.toml` no repo tem tudo (Node 22 pinado, publish, catch-all de SPA, cache imutável nos assets com hash). Basta conectar o repositório em *Site configuration → Build & deploy → Link repository* e apontar para a branch — o Netlify builda sozinho a cada push.
+Publica no Netlify a cada push na `main` — o repositório já está ligado ao site `r6-manager` e o `netlify.toml` configura build, redirects e cache. Toda PR também ganha um preview próprio.
 
-O bundle de produção fica em **265 kB (85 kB gzip)**.
+**📖 Passo a passo para quem não é programador: [`docs/DEPLOY.md`](docs/DEPLOY.md)** — conferir o site, republicar, trocar o pacote de operadores e ler o log quando um build falha.
 
-> ⚠️ Se você buildar localmente, o número sobe um pouco (288 kB). Motivo: o instalador do AIOX escreve `NODE_ENV=development` no `.env` e no `.env.example`, e o Vite obedece isso — sem tratamento, `npm run build` emitiria a **build de desenvolvimento do React** (486 kB, com warnings e runtime mais lento). O `vite.config.ts` fixa a branch de produção via `define`. Se quiser o número limpo, tire `NODE_ENV` do `.env`.
+Bundle de produção: **265 kB (85 kB gzip)**.
+
+> ⚠️ Buildando localmente o número sobe um pouco (288 kB). Motivo: o instalador do AIOX escreve `NODE_ENV=development` no `.env` e no `.env.example`, e o Vite obedece — sem tratamento, `npm run build` emitiria a **build de desenvolvimento do React** (486 kB, com warnings e runtime mais lento). O `vite.config.ts` fixa a branch de produção via `define`. Para o número limpo, tire `NODE_ENV` do `.env`.
 
 ## Nota legal
 
