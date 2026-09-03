@@ -5,12 +5,22 @@
  * draft shipping four operators per side when a lineup needs five, which no
  * unit test noticed.
  *
+ * Playwright is deliberately NOT a devDependency: it is tens of megabytes for
+ * a script that never runs in CI, and it would slow every Netlify build.
+ * Install it on demand:
+ *
+ *   npm i -D playwright
  *   npx vite build && npx vite preview --port 4173 &
  *   node play-check.mjs
+ *
+ * Point it at a deployed site instead of the local preview with:
+ *
+ *   BASE_URL=https://your-site.netlify.app node play-check.mjs
  */
 import { chromium } from 'playwright';
 
 const OUT = process.env.OUT_DIR ?? '.';
+const BASE_URL = process.env.BASE_URL ?? 'http://127.0.0.1:4173/';
 const browser = await chromium.launch({
   executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
 });
@@ -22,7 +32,7 @@ page.on('pageerror', (e) => errors.push('PAGEERROR: ' + e.message));
 
 const heading = () => page.locator('h2').first().innerText();
 
-await page.goto('http://127.0.0.1:4173/', { waitUntil: 'networkidle' });
+await page.goto(BASE_URL, { waitUntil: 'networkidle' });
 await page.screenshot({ path: `${OUT}/01-home.png` });
 console.log('title:', await page.title());
 

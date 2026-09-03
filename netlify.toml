@@ -1,0 +1,30 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Vite 7 requires ^20.19 || >=22.12. Without a pin, Netlify's default Node
+  # can be older than that and the remote build fails at install time.
+  NODE_VERSION = "22"
+
+# The game has no client router — a run keeps its seed on the hash (`#seed=`),
+# which never reaches the server. This catch-all exists only so a mistyped
+# path shows the game rather than Netlify's 404 page.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Vite emits content-hashed asset filenames, so they are safe to cache
+# forever: a new build produces new names.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# index.html must NOT be cached the same way — it is what points at the
+# hashed assets, so a stale copy would pin returning players to an old build.
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
