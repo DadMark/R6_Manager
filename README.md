@@ -74,6 +74,16 @@ As três estratégias de ataque ficam a menos de 2.5pp de média entre si, mante
 
 Fase 2 (não implementada): PvP assíncrono, rodando o mesmo motor no servidor.
 
+## Deploy
+
+O `dist/` é estático puro — sem backend, sem variável de ambiente obrigatória. Publica em qualquer host.
+
+**Netlify:** o site `r6-manager` já existe e o `netlify.toml` no repo tem tudo (Node 22 pinado, publish, catch-all de SPA, cache imutável nos assets com hash). Basta conectar o repositório em *Site configuration → Build & deploy → Link repository* e apontar para a branch — o Netlify builda sozinho a cada push.
+
+O bundle de produção fica em **265 kB (85 kB gzip)**.
+
+> ⚠️ Se você buildar localmente, o número sobe um pouco (288 kB). Motivo: o instalador do AIOX escreve `NODE_ENV=development` no `.env` e no `.env.example`, e o Vite obedece isso — sem tratamento, `npm run build` emitiria a **build de desenvolvimento do React** (486 kB, com warnings e runtime mais lento). O `vite.config.ts` fixa a branch de produção via `define`. Se quiser o número limpo, tire `NODE_ENV` do `.env`.
+
 ## Nota legal
 
 Operadores de Rainbow Six Siege são propriedade da Ubisoft. Todo nome, unidade e gadget vive apenas em `src/content/` — o motor nunca referencia um id de operador, e um teste garante isso.
