@@ -78,7 +78,9 @@ Fase 2 (não implementada): PvP assíncrono, rodando o mesmo motor no servidor.
 
 O `dist/` é estático puro — sem backend, sem variável de ambiente obrigatória. Publica em qualquer host.
 
-**📖 Passo a passo completo, para quem não é programador: [`docs/DEPLOY.md`](docs/DEPLOY.md).** O site `r6-manager` já existe e o `netlify.toml` no repo já configura tudo; falta só ligar o repositório no painel do Netlify.
+Publica no Netlify a cada push na `main` — o repositório já está ligado ao site `r6-manager` e o `netlify.toml` configura build, redirects e cache. Toda PR também ganha um preview próprio.
+
+**📖 Passo a passo para quem não é programador: [`docs/DEPLOY.md`](docs/DEPLOY.md)** — conferir o site, republicar, trocar o pacote de operadores e ler o log quando um build falha.
 
 Bundle de produção: **265 kB (85 kB gzip)**.
 

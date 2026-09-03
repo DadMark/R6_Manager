@@ -2,7 +2,26 @@
 
 Guia para quem não é programador. Você não precisa instalar nada nem usar terminal — tudo acontece no site do Netlify.
 
-**Tempo:** uns 5 minutos, sendo 2 deles só esperando.
+---
+
+## Status: já está ligado ✅
+
+O repositório **já está conectado** ao site `r6-manager`. Não há nada para configurar.
+
+O que dá para confirmar de fora, pelo próprio GitHub:
+
+| | |
+|---|---|
+| Repositório ligado ao site | ✅ o Netlify comenta um preview em cada PR, o que só acontece quando está ligado |
+| O build funciona no servidor do Netlify | ✅ rodou e passou |
+| Regras de redirect do `netlify.toml` | ✅ validadas pelo Netlify |
+| Regras de cache do `netlify.toml` | ✅ validadas pelo Netlify |
+
+**Confira você mesmo:** abra 👉 **https://r6-manager.netlify.app** e jogue um round — nova campanha → draft → escalar 5 → narração → resultado. Eu não consigo abrir esse endereço daqui (a rede deste ambiente bloqueia os domínios do Netlify), então essa conferência final é sua.
+
+Se estiver no ar, acabou: **todo push na `main` republica o site sozinho**, em uns 2 minutos.
+
+Se abrir em branco ou der erro, pule para [Se der errado](#se-der-errado).
 
 ---
 
@@ -22,17 +41,19 @@ Você **não** precisa decorar nada disso. Está aqui só para o painel não par
 
 Você poderia gerar os arquivos no seu computador e arrastar para o Netlify. Não recomendo: exigiria instalar o Node, baixar o projeto e rodar comandos.
 
-Ligando ao GitHub, o Netlify busca o código sozinho e monta tudo no servidor dele. E o melhor: **de agora em diante, toda alteração no projeto republica o site automaticamente.** Você faz isso uma vez só.
+Ligando ao GitHub, o Netlify busca o código sozinho e monta tudo no servidor dele. E o melhor: **toda alteração no projeto republica o site automaticamente.** Faz-se isso uma vez só — e no nosso caso já está feito.
 
 ---
 
-## Passo a passo
+## Passo a passo de como ligar
+
+> **Isto já foi feito.** A seção fica aqui como referência, para o dia em que você criar um segundo site, trocar de repositório ou precisar religar.
 
 ### 1. Abra o site no painel
 
 👉 **[app.netlify.com/projects/r6-manager](https://app.netlify.com/projects/r6-manager)**
 
-O site já existe (eu criei), só está vazio esperando o código.
+O site já existe, criado durante o desenvolvimento.
 
 ### 2. Vá em Site configuration → Build & deploy
 
