@@ -1,0 +1,68 @@
+.group {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.option,
+.strategy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.option {
+  flex: 1 1 6rem;
+  align-items: center;
+  text-align: center;
+}
+
+.optionName {
+  font-weight: 600;
+}
+
+.blurb {
+  font-size: var(--step--1);
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.active {
+  background: var(--surface-3);
+}
+
+.atk.active {
+  border-color: var(--atk);
+  box-shadow: inset 3px 0 0 var(--atk);
+}
+
+.def.active {
+  border-color: var(--def);
+  box-shadow: inset 3px 0 0 var(--def);
+}
+
+.option.atk.active,
+.option.def.active {
+  box-shadow: none;
+}
+
+.option.atk.active {
+  border-color: var(--atk);
+  background: var(--atk-glow);
+}
+
+.option.def.active {
+  border-color: var(--def);
+  background: var(--def-glow);
+}
